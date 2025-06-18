@@ -1,7 +1,7 @@
 import requests
 import datetime
 import pandas as pd
-import pytz # Опционально, если понадобятся сложные манипуляции с часовыми поясами, но пока Mapon UTC упрощает
+import pytz # Для роботи з часовими поясами
 
 # Функция для форматирования даты в формат Mapon API (UTC)
 def format_datetime_for_mapon(dt_object: datetime.datetime) -> str:
@@ -219,8 +219,6 @@ def fetch_fuel_summary_data(api_key: str, unit_id: str, start_date: datetime.dat
         }
 
 # Вспомогательная функция для преобразования timestamp в datetime в UTC
-# Пригодится, так как Mapon возвращает 'gmt' как ISO-строку, которую datetime.fromisoformat() обрабатывает
-# Однако, если бы были просто timestamp'ы, эта функция была бы полезна.
 def datetime_from_utc_timestamp(ts: float) -> datetime.datetime:
     return datetime.datetime.fromtimestamp(ts, tz=pytz.utc)
 
@@ -290,16 +288,16 @@ def get_fleet_odometer_and_fuel_data(api_key: str, start_datetime: datetime.date
             average_consumption = 'Нет пробега'
         
         results.append({
-            'Номер Автомобиля': unit_name,
-            f'Одометр CAN ({start_datetime.strftime("%d.%m.%Y %H:%M")} UTC)': odometer_start,
-            f'Одометр CAN ({end_datetime.strftime("%d.%m.%Y %H:%M")} UTC)': odometer_end,
-            'Расстояние (CAN, км)': distance,
-            f'Топливо в баке ({start_datetime.strftime("%d.%m.%Y %H:%M")} UTC, л)': fuel_level_start,
-            f'Топливо в баке ({end_datetime.strftime("%d.%m.%Y %H:%M")} UTC, л)': fuel_level_end,
-            'Заправлено за период (л)': fuel_summary_data['refuelled'],
-            'Сливы за период (л)': fuel_summary_data['drained'],
-            'Расход (датчик, л)': fuel_summary_data['consumed'],
-            'Средний расход (л/100км)': average_consumption
+            'Номер Автомобіля': unit_name,
+            'Одометр CAN (початок)': odometer_start,
+            'Одометр CAN (кінець)': odometer_end,
+            'Пробіг (CAN, км)': distance,
+            'Паливо в баку (початок, л)': fuel_level_start,
+            'Паливо в баку (кінець, л)': fuel_level_end,
+            'Заправлено за період (л)': fuel_summary_data['refuelled'],
+            'Зливи за період (л)': fuel_summary_data['drained'],
+            'Витрата (датчик, л)': fuel_summary_data['consumed'],
+            'Середня витрата (л/100км)': average_consumption
         })
     
     # Создаем pandas DataFrame из списка словарей
@@ -312,6 +310,7 @@ if __name__ == '__main__':
     # Важно: Mapon API ожидает даты в UTC. При выборе дат в Streamlit, убедитесь, что они переводятся в UTC.
     # Для простоты примера, я использую datetime.datetime.utcnow() для создания UTC времени.
     # В реальном приложении Streamlit, мы будем брать даты из input полей и переводить их в UTC.
+    API_KEY = "YOUR_MAPON_API_KEY" # Замените на ваш реальный API ключ для тестирования
     start_date_example = datetime.datetime(2024, 6, 1, 0, 0, 0, tzinfo=pytz.utc) # UTC
     end_date_example = datetime.datetime(2024, 6, 17, 23, 59, 59, tzinfo=pytz.utc) # UTC
 
